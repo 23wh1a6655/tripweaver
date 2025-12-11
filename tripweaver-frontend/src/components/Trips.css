@@ -1,0 +1,129 @@
+/* ---------------- PAGE & BODY ---------------- */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Open Sans", Arial, sans-serif;
+  /* Background unified globally in App.css */
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* ---------------- MAIN CONTENT ---------------- */
+.trips-container {
+  max-width: 900px;
+  margin: 0 auto;
+  /* Top padding accounts for the fixed Navbar height */
+  padding: 140px 20px 40px; 
+  box-sizing: border-box;
+}
+
+.trips-container h2 {
+  color: #9eee68;
+  font-size: 2.8rem;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+/* ---------------- INPUTS (Search Bar) ---------------- */
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 30px;
+  justify-content: center;
+}
+
+/* TARGETING ALL INPUT TYPES, SELECT, AND BUTTON for consistent styling */
+.input-group input, 
+.input-group select,
+.input-group button {
+  padding: 15px 20px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  border: 1px solid #cce0ff;
+  outline: none;
+  /* Allowing inputs to flex/grow but defining a minimum width */
+  flex: 1; 
+  min-width: 150px; 
+  box-sizing: border-box; /* Crucial for padding/border within min-width */
+}
+
+.input-group button {
+  background:#688eee;
+  color: white;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  /* Button is slightly smaller than regular inputs */
+  flex: 0.5; 
+  min-width: 120px;
+}
+
+.input-group button:hover {
+  background: #6a5acd;
+  transform: scale(1.02);
+}
+
+.message {
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.message.error {
+  color: #d90429;
+}
+
+.message.info {
+  color: #444;
+}
+
+/* ---------------- RESULTS CARDS ---------------- */
+.results-section {
+  margin-top: 30px;
+}
+
+.card {
+  background: #ffffff;
+  padding: 20px 25px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+/* Base card styling (can be overridden by specific sections) */
+.card h3 {
+  color: #7b68ee;
+  margin: 0 0 10px 0;
+}
+
+.card p {
+  margin: 5px 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+/* Section titles */
+.section-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 15px;
+  margin-top: 30px; /* Added separation between sections */
+  color: #7b68ee;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .input-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
