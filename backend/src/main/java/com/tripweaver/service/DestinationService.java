@@ -1,134 +1,137 @@
 package com.tripweaver.service;
 
-import com.tripweaver.model.Destination;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.tripweaver.model.Destination;
 
 @Service
 public class DestinationService {
 
-    @Value("${geoapify.api.key}")
-    private String apiKey;
+    @Value("${google.places.api.key:}")
+    private String googleApiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public List<Destination> searchDestinations(String query, String category) {
+    public List<Destination> searchDestinationsGoogle(String query, String category) {
         try {
-           
-            String geoUrl = "https://api.geoapify.com/v1/geocode/search?text=" + query +
-                            "&apiKey=" + apiKey;
-            System.out.println("Geo URL: " + geoUrl);
+            if (googleApiKey == null || googleApiKey.isEmpty()) return new ArrayList<>();
 
-           
-            org.springframework.http.ResponseEntity<String> geoEntity =
-                    restTemplate.getForEntity(geoUrl, String.class);
+            String type = null;
+            if ("accommodation".equalsIgnoreCase(category)) type = "lodging";
+            else if ("tourist_attraction".equalsIgnoreCase(category)) type = "tourist_attraction";
+            else if ("restaurant".equalsIgnoreCase(category)) type = "restaurant";
 
-            if (!geoEntity.getStatusCode().is2xxSuccessful() || geoEntity.getBody() == null) {
-                System.out.println("Geocode call failed: status=" + geoEntity.getStatusCode());
-                return new ArrayList<>();
-            }
+            String q = query;
+            if ("accommodation".equalsIgnoreCase(category)) q += " hotels";
+            if ("tourist_attraction".equalsIgnoreCase(category)) q += " attractions";
+            if ("restaurant".equalsIgnoreCase(category)) q += " restaurants";
 
-            String geoResponse = geoEntity.getBody();
-            System.out.println("Geo Response: " + geoResponse);
+            String url = "https://maps.googleapis.com/maps/api/place/textsearch/json?"
+                    + "query=" + URLEncoder.encode(q, StandardCharsets.UTF_8)
+                    + "&key=" + googleApiKey;
+            if (type != null) url += "&type=" + type;
 
-            JSONObject geoJson = new JSONObject(geoResponse);
-            JSONArray results = geoJson.optJSONArray("features");
+            org.springframework.http.ResponseEntity<String> entity = restTemplate.getForEntity(url, String.class);
+            if (!entity.getStatusCode().is2xxSuccessful() || entity.getBody() == null) return new ArrayList<>();
 
-           
-            if (results == null || results.length() == 0) {
-                System.out.println("No geocoding results found for query: " + query);
-                return new ArrayList<>();
-            }
+            JSONObject json = new JSONObject(entity.getBody());
+            JSONArray results = json.optJSONArray("results");
+            if (results == null) return new ArrayList<>();
 
-            JSONObject firstFeature = results.optJSONObject(0);
-            if (firstFeature == null) {
-                System.out.println("First geocoding feature is null for query: " + query);
-                return new ArrayList<>();
-            }
+            List<Destination> out = new ArrayList<>();
+            for (int i = 0; i < results.length(); i++) {
+                JSONObject r = results.getJSONObject(i);
+                String name = r.optString("name", "Unknown");
+                String address = r.optString("formatted_address", "");
+                JSONObject location = r.optJSONObject("geometry") != null ? r.optJSONObject("geometry").optJSONObject("location") : null;
+                double lat = location != null ? location.optDouble("lat", 0.0) : 0.0;
+                double lon = location != null ? location.optDouble("lng", 0.0) : 0.0;
+                String placeId = r.optString("place_id", "");
 
-            JSONObject geometry = firstFeature.optJSONObject("geometry");
-            JSONArray coordinates = (geometry != null) ? geometry.optJSONArray("coordinates") : null;
-            if (coordinates == null || coordinates.length() < 2) {
-                System.out.println("Invalid geometry in geocoding results for query: " + query);
-                return new ArrayList<>();
-            }
-
-            double lon = coordinates.optDouble(0);
-            double lat = coordinates.optDouble(1);
-
-            System.out.println("Resolved coordinates: lon=" + lon + ", lat=" + lat);
-
-            
-            String placesUrl = "https://api.geoapify.com/v2/places?" +
-                    "categories=" + category +
-                    "&filter=circle:" + lon + "," + lat + ",5000" +
-                    "&limit=20" +
-                    "&apiKey=" + apiKey;
-
-            System.out.println("Places URL: " + placesUrl);
-
-            org.springframework.http.ResponseEntity<String> placesEntity =
-                    restTemplate.getForEntity(placesUrl, String.class);
-
-            if (!placesEntity.getStatusCode().is2xxSuccessful() || placesEntity.getBody() == null) {
-                System.out.println("Places call failed: status=" + placesEntity.getStatusCode());
-                return new ArrayList<>();
-            }
-
-            String response = placesEntity.getBody();
-            System.out.println("Places Response: " + response);
-
-            
-            List<Destination> destinations = new ArrayList<>();
-            JSONObject json = new JSONObject(response);
-            JSONArray features = json.optJSONArray("features");
-            if (features == null || features.length() == 0) {
-                System.out.println("No places found for query: " + query + " and category: " + category);
-                return new ArrayList<>();
-            }
-
-            for (int i = 0; i < features.length(); i++) {
-                JSONObject prop = features.getJSONObject(i).getJSONObject("properties");
-
-                JSONArray categoriesArray = prop.optJSONArray("categories");
-                String categories = "";
-                if (categoriesArray != null) {
-                    List<String> list = new ArrayList<>();
-                    for (int j = 0; j < categoriesArray.length(); j++) {
-                        list.add(categoriesArray.getString(j));
+                String photoUrl = null;
+                JSONArray photos = r.optJSONArray("photos");
+                if (photos != null && photos.length() > 0) {
+                    JSONObject ph = photos.optJSONObject(0);
+                    String photoRef = ph != null ? ph.optString("photo_reference", null) : null;
+                    if (photoRef != null) {
+                        photoUrl = "https://maps.googleapis.com/maps/api/place/photo?"
+                                + "maxwidth=800&photoreference=" + URLEncoder.encode(photoRef, StandardCharsets.UTF_8)
+                                + "&key=" + googleApiKey;
                     }
-                    categories = String.join(", ", list);
                 }
 
-                String name = prop.optString("name", "Unknown");
-                String address = prop.optString("formatted", "Not Available");
-                double latRes = prop.optDouble("lat", 0.0);
-                double lonRes = prop.optDouble("lon", 0.0);
-                String placeId = prop.optString("place_id", "");
+                if (photoUrl == null) {
+                    photoUrl = "https://source.unsplash.com/800x400/?"
+                            + URLEncoder.encode(name + "," + category, StandardCharsets.UTF_8);
+                }
 
-                destinations.add(new Destination(name, address, latRes, lonRes, categories, placeId));
+                Destination d = new Destination(name, address, lat, lon, category != null ? category : "", placeId);
+                d.setPhotoUrl(photoUrl);
+
+                if (r.has("rating")) d.setRating(r.optDouble("rating"));
+                if (r.has("user_ratings_total")) d.setUserRatingCount(r.optInt("user_ratings_total"));
+
+                out.add(d);
             }
 
-            System.out.println("Parsed destinations count: " + destinations.size());
-            return destinations;
+            return out;
+
         } catch (Exception e) {
-            System.err.println("Geoapify API error: " + e.getMessage());
             e.printStackTrace();
             return new ArrayList<>();
         }
     }
 
-    public String getDestinationDetails(String placeId) {
-        String url = "https://api.geoapify.com/v2/place-details?" +
-                "id=" + placeId +
-                "&apiKey=" + apiKey;
-        System.out.println("Details URL: " + url);
-        return restTemplate.getForObject(url, String.class);
+    public List<Destination> searchAllGoogle(String query) {
+        List<Destination> out = new ArrayList<>();
+        out.addAll(searchDestinationsGoogle(query, "accommodation"));
+        out.addAll(searchDestinationsGoogle(query, "restaurant"));
+        out.addAll(searchDestinationsGoogle(query, "tourist_attraction"));
+        return out;
+    }
+
+    public List<String> getPlacePhotosLegacy(String placeId) {
+        try {
+            if (googleApiKey == null || googleApiKey.isEmpty()) return new ArrayList<>();
+
+            String url = "https://maps.googleapis.com/maps/api/place/details/json?place_id="
+                    + URLEncoder.encode(placeId, StandardCharsets.UTF_8)
+                    + "&key=" + googleApiKey;
+
+            org.springframework.http.ResponseEntity<String> entity = restTemplate.getForEntity(url, String.class);
+            if (!entity.getStatusCode().is2xxSuccessful() || entity.getBody() == null) return new ArrayList<>();
+
+            JSONObject json = new JSONObject(entity.getBody());
+            JSONObject result = json.optJSONObject("result");
+            JSONArray photos = result != null ? result.optJSONArray("photos") : null;
+
+            List<String> out = new ArrayList<>();
+            if (photos != null) {
+                for (int i = 0; i < photos.length(); i++) {
+                    JSONObject ph = photos.getJSONObject(i);
+                    String ref = ph.optString("photo_reference", null);
+                    if (ref != null) {
+                        String photoUrl = "https://maps.googleapis.com/maps/api/place/photo?"
+                                + "maxwidth=800&photoreference=" + URLEncoder.encode(ref, StandardCharsets.UTF_8)
+                                + "&key=" + googleApiKey;
+                        out.add(photoUrl);
+                    }
+                }
+            }
+            return out;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 }

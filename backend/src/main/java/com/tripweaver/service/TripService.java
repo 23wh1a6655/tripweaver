@@ -1,8 +1,9 @@
 package com.tripweaver.service;
 
-import com.tripweaver.model.TripResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.tripweaver.model.TripResponse;
 
 @Service
 public class TripService {
@@ -13,13 +14,10 @@ public class TripService {
     @Autowired
     private HotelService hotelService;
 
-    public TripResponse getTripData(String destination, String date) {
-
+    public TripResponse getTripData(String origin, String destination, String date) {
         TripResponse response = new TripResponse();
-
-        response.setFlights(flightService.searchFlights(destination, date));
+        response.setFlights(flightService.searchFlights(origin, destination, date));
         response.setHotels(hotelService.searchHotels(destination));
-
         return response;
     }
 }

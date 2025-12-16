@@ -127,3 +127,101 @@ html, body {
     align-items: stretch;
   }
 }
+.flight-header {
+  display: flex;           /* Horizontally aligns airline logo and text */
+  align-items: center;     /* Vertically center aligns items */
+  gap: 12px;               /* Space between logo and airline name/flight number */
+}
+
+.airline-logo {
+  width: 50px;             /* Fixed width for logos */
+  height: 50px;            /* Fixed height */
+  object-fit: contain;     /* Maintains logo aspect ratio */
+  border-radius: 6px;      /* Rounded corners */
+  background: #f0f0f0;     /* Light background for missing logos */
+  padding: 4px;            /* Padding inside the logo box */
+}
+
+.card.flight p, .card.hotel p {
+  margin: 5px 0;           /* Space between text lines */
+}
+
+.section-title {
+  font-size: 1.8rem;       /* Big title for Flights/Hotels sections */
+  font-weight: 800;        /* Bold */
+  margin: 25px 0 15px 0;   /* Top & bottom spacing */
+  color: #7b68ee;          /* Purple color */
+}
+.trips-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 140px 20px 40px;
+  box-sizing: border-box;
+}
+
+.trips-container h2 {
+  color: #9eee68;
+  font-size: 2.8rem;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.input-group input, .input-group button {
+  padding: 15px 20px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  border: 1px solid #cce0ff;
+  outline: none;
+  flex: 1;
+  min-width: 150px;
+}
+
+.input-group button {
+  background:#688eee;
+  color: white;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  flex: 0.5; 
+  min-width: 120px;
+}
+
+.input-group button:hover { background: #6a5acd; transform: scale(1.02); }
+
+.message { text-align: center; font-weight: 600; margin-bottom: 15px; }
+.message.error { color: #d90429; }
+.message.info { color: #444; }
+
+.results-section { margin-top: 30px; }
+.card {
+  background: #fff;
+  padding: 20px 25px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+
+.flight-header { display: flex; align-items: center; gap: 12px; }
+.airline-logo { width: 50px; height: 50px; object-fit: contain; border-radius: 6px; background: #f0f0f0; padding: 4px; }
+
+.section-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 25px 0 15px 0;
+  color: #7b68ee;
+}
+
+@media (max-width: 600px) {
+  .input-group { flex-direction: column; align-items: stretch; }
+}

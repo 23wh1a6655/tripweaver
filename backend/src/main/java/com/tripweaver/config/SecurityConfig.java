@@ -3,40 +3,15 @@ package com.tripweaver.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.Customizer; 
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import com.tripweaver.service.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.SecurityFilterChain;
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 @Configuration
-@EnableWebSecurity
 public class SecurityConfig {
-
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> {}) // enables CORS
-            .authorizeHttpRequests(auth -> auth
-                // Allow CORS preflight requests
-                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                // Public endpoints
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/destination/**").permitAll()
-                // Everything else requires authentication
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable());
-
-        return http.build();
-    }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -44,13 +19,24 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder builder =
-                http.getSharedObject(AuthenticationManagerBuilder.class);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 
-        builder.userDetailsService(userDetailsService)
-               .passwordEncoder(passwordEncoder());
-
-        return builder.build();
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            // FIX: Enable CORS and integrate the CorsConfig bean
+            .cors(Customizer.withDefaults()) 
+            .csrf(csrf -> csrf.disable()) 
+            
+            .authorizeHttpRequests(auth -> auth
+                // Allow public access to search APIs
+                .requestMatchers(antMatcher("/api/trip/**")).permitAll()
+                .requestMatchers(antMatcher("/api/destination/**")).permitAll()
+                .requestMatchers(antMatcher("/api/auth/**")).permitAll() 
+                .anyRequest().authenticated()
+            );
+        return http.build();
     }
 }
