@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/trip")
-@CrossOrigin("*")
 public class TripController {
 
     @Autowired
@@ -15,9 +14,11 @@ public class TripController {
 
     @GetMapping("/search")
     public TripResponse searchTrip(
+            @RequestParam String origin,
             @RequestParam String destination,
             @RequestParam String date
     ) {
-        return tripService.getTripData(destination, date);
+        // This mapping requires origin, destination, and date.
+        return tripService.getTripData(origin, destination, date);
     }
 }

@@ -1,30 +1,41 @@
 package com.tripweaver.controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.tripweaver.model.Destination;
 import com.tripweaver.service.DestinationService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/destination")
-@CrossOrigin(origins = "*")
+
 public class DestinationController {
 
     @Autowired
     private DestinationService destinationService;
 
-    @GetMapping("/search")
-    public List<Destination> searchDestinations(
+    @GetMapping("/search/google")
+    public List<Destination> searchGoogle(
             @RequestParam String query,
-            @RequestParam(defaultValue = "tourism") String category
+            @RequestParam(defaultValue = "accommodation") String category
     ) {
-        return destinationService.searchDestinations(query, category);
+        return destinationService.searchDestinationsGoogle(query, category);
     }
 
-    @GetMapping("/details/{placeId}")
-    public String getDestinationDetails(@PathVariable String placeId) {
-        return destinationService.getDestinationDetails(placeId);
+    @GetMapping("/search/all")
+    public List<Destination> searchAll(@RequestParam String query) {
+        return destinationService.searchAllGoogle(query);
+    }
+
+    @GetMapping("/photos/{placeId}")
+    public List<String> getPhotos(@PathVariable String placeId) {
+        return destinationService.getPlacePhotosLegacy(placeId);
     }
 }
