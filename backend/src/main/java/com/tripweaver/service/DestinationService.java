@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.tripweaver.model.Destination;
-
+#Destinations
 @Service
 public class DestinationService {
 
