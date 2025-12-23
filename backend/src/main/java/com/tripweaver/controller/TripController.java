@@ -16,9 +16,10 @@ public class TripController {
     public TripResponse searchTrip(
             @RequestParam String origin,
             @RequestParam String destination,
-            @RequestParam String date
+            @RequestParam String date,
+            @RequestParam(required = false) Double budget
     ) {
         // This mapping requires origin, destination, and date.
-        return tripService.getTripData(origin, destination, date);
+        return tripService.getTripData(origin, destination, date, budget);
     }
 }
