@@ -43,6 +43,10 @@ public class FlightService {
                     flight.setArrivalAirport(f.getJSONObject("arrival").optString("iata"));
                     flight.setDepartureTime(f.getJSONObject("departure").optString("scheduled"));
                     flight.setArrivalTime(f.getJSONObject("arrival").optString("scheduled"));
+
+                    // Dummy price (AviationStack doesn't provide prices)
+                    flight.setPrice(8000 + i * 2000);
+
                     flights.add(flight);
                 }
             }
@@ -71,6 +75,10 @@ public class FlightService {
             f.setArrivalAirport(destination);
             f.setDepartureTime(date + " " + times[i]);
             f.setArrivalTime(date + " " + (i < 2 ? "10:25" : "23:05"));
+
+            // Dummy price for mock flights
+            f.setPrice(8000 + i * 2000);
+
             demo.add(f);
         }
         return demo;

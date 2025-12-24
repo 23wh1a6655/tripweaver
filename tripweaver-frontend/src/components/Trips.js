@@ -8,7 +8,9 @@ const API_BASE = "http://localhost:8090/api"; // backend URL
 function Trips() {
     const [origin, setOrigin] = useState("");
     const [destination, setDestination] = useState("");
-    const [date, setDate] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [budget, setBudget] = useState("");
     const [trip, setTrip] = useState(null);
     const [error, setError] = useState("");
     const [info, setInfo] = useState("");
@@ -34,46 +36,33 @@ function Trips() {
         setTrip(null);
 
         const o = origin.trim().toUpperCase();
-        const d = destination.trim().toUpperCase();
-        const depDate = date || new Date().toISOString().slice(0, 10);
+        const d = destination.trim();
+        const depDate = startDate || new Date().toISOString().slice(0, 10);
+        const userBudget = parseFloat(budget);
         
         let flights = [];
         let hotels = [];
         let fallbackMessages = [];
 
-        if (!o || !d) {
-            setTrip({ flights: mockFlights(o, d, depDate), hotels: [] });
-            setInfo("Showing demo flights. Please enter both origin and destination (IATA codes).");
+        if (!o || !d || !startDate || !endDate || !budget) {
+            setError("Please fill in all fields (Origin, Destination, Start Date, End Date, Budget).");
             setLoading(false);
             return;
         }
 
-        // --- 1. Fetch Flights ---
+        // --- Fetch Trip Data (Flights + Hotels) ---
         try {
             const res = await axios.get(`${API_BASE}/trip/search`, {
-                // *** FIX: Added 'origin: o' to match TripController ***
-                params: { origin: o, destination: d, date: depDate }, 
+                params: { origin: o, destination: d, date: depDate, budget: userBudget }, 
                 withCredentials: true,
             });
             flights = res.data?.flights || [];
+            hotels = res.data?.hotels || [];
         } catch (err) {
-            console.error("Flights API Error:", err.response || err.message);
+            console.error("Trip API Error:", err.response || err.message);
+            // Fallback for flights
             flights = mockFlights(o, d, depDate);
-            fallbackMessages.push("Flights: Showing demo data due to API failure.");
-        }
-
-        // --- 2. Fetch Hotels ---
-        try {
-            // *** FIX: Updated path to /destination/search/google ***
-            const res = await axios.get(`${API_BASE}/destination/search/google`, {
-                params: { query: d, category: "accommodation" },
-                withCredentials: true,
-            });
-            hotels = res.data || []; 
-        } catch (err) {
-            console.error("Hotels API Error:", err.response || err.message);
-            fallbackMessages.push("Hotels: Could not fetch data.");
-            hotels = []; 
+            fallbackMessages.push("API Error: Could not fetch complete trip data.");
         }
 
         // --- Final State Update ---
@@ -89,7 +78,7 @@ function Trips() {
     };
 
     return (
-        <>
+        <div className="trips-wrapper">
             <Navbar />
             <div className="trips-container">
                 <h2>Plan Your Trip</h2>
@@ -97,22 +86,39 @@ function Trips() {
                 <div className="input-group">
                     <input
                         type="text"
-                        placeholder="From (IATA e.g. HYD)"
+                        placeholder="From (e.g. HYD)"
                         value={origin}
                         onChange={(e) => setOrigin(e.target.value)}
                     />
                     <input
                         type="text"
-                        placeholder="To (IATA e.g. DEL)"
+                        placeholder="To (City e.g. Bangkok, Phuket)"
                         value={destination}
                         onChange={(e) => setDestination(e.target.value)}
                     />
+                    <div style={{display: 'flex', flexDirection: 'column', flex: 1, minWidth: '150px'}}>
+                        <span style={{fontSize: '0.8rem', color: '#666', marginLeft: '5px'}}>Start Date</span>
+                        <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                    </div>
+                    <div style={{display: 'flex', flexDirection: 'column', flex: 1, minWidth: '150px'}}>
+                        <span style={{fontSize: '0.8rem', color: '#666', marginLeft: '5px'}}>End Date</span>
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                        />
+                    </div>
                     <input
-                        type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
+                        type="number"
+                        placeholder="Max Price/Night ($)"
+                        value={budget}
+                        onChange={(e) => setBudget(e.target.value)}
                     />
-                    <button onClick={handleSearch} disabled={loading || !origin || !destination}>
+                    <button onClick={handleSearch} disabled={loading}>
                         {loading ? "Searching..." : "Search"}
                     </button>
                 </div>
@@ -120,9 +126,50 @@ function Trips() {
                 {error && <p className="message error">{error}</p>}
                 {info && <p className="message info">{info}</p>}
 
-                {/* ... (Results JSX remains the same) ... */}
+                {trip && (
+                    <div className="results-section">
+                        {trip.flights.length > 0 && (
+                            <>
+                                <h3>Available Flights</h3>
+                                {trip.flights.map((f, i) => (
+                                    <div key={i} className="card">
+                                        <h4>{f.airline} ({f.flightNumber})</h4>
+                                        <p><strong>Departure:</strong> {f.departureTime} ({f.departureAirport})</p>
+                                        <p><strong>Arrival:</strong> {f.arrivalTime} ({f.arrivalAirport})</p>
+                                    </div>
+                                ))}
+                            </>
+                        )}
+
+                        {trip.hotels.length > 0 && (
+                            <>
+                                <h3>Available Hotels</h3>
+                                {trip.hotels.map((h, i) => {
+                                    const start = new Date(startDate);
+                                    const end = new Date(endDate);
+                                    const nights = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) || 1);
+                                    const totalCost = h.price * nights;
+
+                                    return (
+                                        <div key={i} className="card">
+                                            <h4>{h.name}</h4>
+                                            <p>{h.address}</p>
+                                            <p><strong>Rating:</strong> {h.rating} / 5</p>
+                                            <p style={{color: '#2ecc71', fontWeight: 'bold'}}>
+                                                Price: ₹{h.price} / night 
+                                                <span style={{color: '#555', fontSize: '0.9rem', fontWeight: 'normal'}}>
+                                                     (Total: ${totalCost} for {nights} nights)
+                                                </span>
+                                            </p>
+                                        </div>
+                                    );
+                                })}
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
-        </>
+        </div>
     );
 }
 
