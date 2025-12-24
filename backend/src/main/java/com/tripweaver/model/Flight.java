@@ -7,6 +7,7 @@ public class Flight {
     private String arrivalAirport;
     private String departureTime;
     private String arrivalTime;
+    private double price; 
 
     // Getters & Setters
     public String getAirline() { return airline; }
@@ -21,4 +22,6 @@ public class Flight {
     public void setDepartureTime(String departureTime) { this.departureTime = departureTime; }
     public String getArrivalTime() { return arrivalTime; }
     public void setArrivalTime(String arrivalTime) { this.arrivalTime = arrivalTime; }
+    public double getPrice() { return price; }  // <-- Getter
+    public void setPrice(double price) { this.price = price; } // <-- Setter
 }
