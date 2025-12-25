@@ -67,7 +67,6 @@ function App() {
 
         {/* REDIRECT any unknown route */}
         <Route path="*" element={<Navigate to="/signup" />} />
-
       </Routes>
     </Router>
   );
