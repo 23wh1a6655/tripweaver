@@ -1,0 +1,95 @@
+.travel-page {
+  background: #f5f7fb;
+}
+
+/* HERO */
+.hero {
+  height: 260px;
+  background: linear-gradient(120deg, #4f46e5, #06b6d4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-bar {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  width: 80%;
+}
+
+.search-bar input, .search-bar button {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.search-bar button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+/* SECTION */
+.section {
+  padding: 30px 60px;
+}
+
+.section h2 {
+  margin-bottom: 16px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+/* IMAGE CARD */
+.image-card {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0,0,0,.1);
+}
+
+.image-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.image-card .content {
+  padding: 14px;
+}
+
+.image-card h4 {
+  color: #6366f1;
+}
+
+.image-card button {
+  margin-top: 8px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* FLIGHT CARD */
+.flight-card {
+  background: white;
+  padding: 14px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.flight-card img {
+  width: 60px;
+}

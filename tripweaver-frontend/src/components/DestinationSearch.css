@@ -12,7 +12,8 @@ html, body {
 .explore-container {
   min-height: 100vh;
   width: 100%;
-  background-image: url("C:\Users\Indhu\Downloads\TripWeaver\unnamed.jpg");
+  background-image: url("../assets/unnamed.jpg");
+
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

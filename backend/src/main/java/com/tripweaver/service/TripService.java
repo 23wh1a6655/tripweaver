@@ -14,10 +14,10 @@ public class TripService {
     @Autowired
     private HotelService hotelService;
 
-    public TripResponse getTripData(String origin, String destination, String date) {
+    public TripResponse getTripData(String origin, String destination, String date, Double budget) {
         TripResponse response = new TripResponse();
         response.setFlights(flightService.searchFlights(origin, destination, date));
-        response.setHotels(hotelService.searchHotels(destination));
+        response.setHotels(hotelService.searchHotels(destination, budget));
         return response;
     }
 }
